@@ -23,7 +23,7 @@ $Computers | ForEach-Object {
     $IPActivated = $Null
     $LogonDate = $_.LastLogonDate
 
-    #This is what the FTE tool checks for to see if Software is installed and activated.
+    #This is what the tool checks for to see if Software is installed and activated.
     $SoftwarePath = "\\$ScriptPath\c$\Program Files\software"
     $ActivationPath = "\\$ScriptPath\c$\Program Files\software\file.config"
     $PathCheck = "\\$ScriptPath\c$"
