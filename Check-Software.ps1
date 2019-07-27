@@ -1,6 +1,14 @@
 <#
+.SYNOPSIS
+Checks that a specific piece of software has been installed on the computer and has been activated.
+
+.DESCRIPTION
 Gets computer objects from AD.  Then uses a for loop to check for presence of software folder and a file
-that the software generates when it is activated.  The output will then be exported to a CSV file for easy organizing.
+that the software generates when it is activated.  Because of DNS issues in the environment, it will test
+the administrative share using hostname first.  If that fails, it will then attempt to access the share 
+using IP Address.  Next it will read the "real" hostname of the computer by reading the NetSetup.LOG file.
+
+The output will then be exported to a CSV file for easy organizing.
 #>
 
 $Progress = 0
@@ -31,6 +39,7 @@ $Computers | ForEach-Object {
     #Tests to see if the computer is pingable.
     $Online = Test-NetConnection -ComputerName $_.Name -InformationLevel Detailed
     if($Online.PingSucceeded -eq $True){
+        
         #This checks the root of the C drive.  If DNS is inaccurate, it will fail.
         $DNSPathCheck = Test-Path $PathCheck
         if($DNSPathCheck -eq $True){
@@ -48,9 +57,10 @@ $Computers | ForEach-Object {
             #hostname of the computer.  It uses both the computer name and ip address in the log name.
             $IPTestPath = Test-Path \\$IPPath\c$\Windows\debug\NetSetup.LOG
             if($IPTestPath -eq $True){
+
                 #Reads the hostname off the NetSetup.LOG file.
                 $HostName = Select-String -Path "\\$IPPath\c$\Windows\debug\NetSetup.LOG" -Pattern 'NetbiosName: (\w.*)' |
-                Select-Object -Last 1 | % {$_.Matches.Groups[1].Value}
+                Select-Object -Last 1 | ForEach-Object {$_.Matches.Groups[1].Value}
 
                 $IPNameCheck = 'TRUE'
 
@@ -87,11 +97,12 @@ $Computers | ForEach-Object {
     'IP_Activated' = $IPActivated
     } #Close custom PSObject Hash Table.
     Start-Sleep -Seconds 2
+
     #Tracks progress as it goes through each loop.
     $Progress++
-    Write-Progress -Activity "Checking Avamar status..." -Status "Checking: $Progress of $($Count)" -PercentComplete (($Progress / $Count) * 100) -Id 1
+    Write-Progress -Activity "Checking Software status..." -Status "Checking: $Progress of $($Count)" -PercentComplete (($Progress / $Count) * 100) -Id 1
 } #Close For-Each Loop.
 
 #Exports the output from the array into a CSV file.
 $Store | Select-Object Computer,DNS,Ping,LogonDate,IPAddress,DNS_Check,IPNameCheck,Software,Activated,HostName,IP_Software,IP_Activated |
-Export-Csv "C:\Scripts\Reports\AvamarStatus_$Date.csv" -NoTypeInformation
+Export-Csv "C:\Scripts\Reports\SoftwareStatus_$Date.csv" -NoTypeInformation
