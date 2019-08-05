@@ -1,5 +1,5 @@
 function Set-TMServiceLogon {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$True)]
     Param(
         [Parameter(Mandatory=$True,
                    ValueFromPipelineByPropertyName=$True)]
@@ -34,9 +34,12 @@ PROCESS{
         } Else {
             $args = @{'StartPassword'=$NewPassword}
         }
-
+        if($PSCmdlet.ShouldProcess($computer))
+        {
         Invoke-CimMethod -ComputerName $computer -MethodName Change -Query "SELECT * FROM Win32_Service WHERE Name = '$ServiceName'" -Arguments $args |
+        
         Select-Object -Property @{n='ComputerName';e={$computer}},@{n='Result';e={$_.ReturnValue}}
+        }
 
         $session | Remove-CimSession
 
