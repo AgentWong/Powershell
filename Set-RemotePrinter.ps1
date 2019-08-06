@@ -6,56 +6,56 @@ $form.Text = 'Data Entry Form'
 $form.Size = New-Object System.Drawing.Size(400,300)
 $form.StartPosition = 'CenterScreen'
 
-$AddButton = New-Object System.Windows.Forms.Button
-$AddButton.Location = New-Object System.Drawing.Point(75,170)
-$AddButton.Size = New-Object System.Drawing.Size(75,23)
-$AddButton.Text = 'Add'
-$form.Controls.Add($AddButton)
-
-$RemoveButton = New-Object System.Windows.Forms.Button
-$RemoveButton.Location = New-Object System.Drawing.Point(150,170)
-$RemoveButton.Size = New-Object System.Drawing.Size(75,23)
-$RemoveButton.Text = 'Remove'
-$form.Controls.Add($RemoveButton)
-
-$ViewButton = New-Object System.Windows.Forms.Button
-$ViewButton.Location = New-Object System.Drawing.Point(225,170)
-$ViewButton.Size = New-Object System.Drawing.Size(75,23)
-$ViewButton.Text = 'View'
-$form.Controls.Add($ViewButton)
-
 $TargetLabel = New-Object System.Windows.Forms.Label
 $TargetLabel.Location = New-Object System.Drawing.Point(75,20)
-$TargetLabel.Size = New-Object System.Drawing.Size(150,20)
+$TargetLabel.Size = New-Object System.Drawing.Size(225,20)
 $TargetLabel.Text = 'Target Computer:'
 $form.Controls.Add($TargetLabel)
 
 $TargetComputerBox = New-Object System.Windows.Forms.TextBox
 $TargetComputerBox.Location = New-Object System.Drawing.Point(75,40)
-$TargetComputerBox.Size = New-Object System.Drawing.Size(150,20)
+$TargetComputerBox.Size = New-Object System.Drawing.Size(225,20)
 $form.Controls.Add($TargetComputerBox)
 
 $ServerLabel = New-Object System.Windows.Forms.Label
 $ServerLabel.Location = New-Object System.Drawing.Point(75,70)
-$ServerLabel.Size = New-Object System.Drawing.Size(150,20)
+$ServerLabel.Size = New-Object System.Drawing.Size(225,20)
 $ServerLabel.Text = 'Print Server:'
 $form.Controls.Add($ServerLabel)
 
 $PrintServerBox = New-Object System.Windows.Forms.TextBox
 $PrintServerBox.Location = New-Object System.Drawing.Point(75,90)
-$PrintServerBox.Size = New-Object System.Drawing.Size(150,20)
+$PrintServerBox.Size = New-Object System.Drawing.Size(225,20)
 $form.Controls.Add($PrintServerBox)
 
 $PrinterLabel = New-Object System.Windows.Forms.Label
 $PrinterLabel.Location = New-Object System.Drawing.Point(75,120)
-$PrinterLabel.Size = New-Object System.Drawing.Size(150,20)
+$PrinterLabel.Size = New-Object System.Drawing.Size(225,20)
 $PrinterLabel.Text = 'Printer Name:'
 $form.Controls.Add($PrinterLabel)
 
 $PrinterBox = New-Object System.Windows.Forms.TextBox
 $PrinterBox.Location = New-Object System.Drawing.Point(75,140)
-$PrinterBox.Size = New-Object System.Drawing.Size(150,20)
+$PrinterBox.Size = New-Object System.Drawing.Size(225,20)
 $form.Controls.Add($PrinterBox)
+
+$AddButton = New-Object System.Windows.Forms.Button
+$AddButton.Location = New-Object System.Drawing.Point(75,180)
+$AddButton.Size = New-Object System.Drawing.Size(75,23)
+$AddButton.Text = 'Add'
+$form.Controls.Add($AddButton)
+
+$RemoveButton = New-Object System.Windows.Forms.Button
+$RemoveButton.Location = New-Object System.Drawing.Point(150,180)
+$RemoveButton.Size = New-Object System.Drawing.Size(75,23)
+$RemoveButton.Text = 'Remove'
+$form.Controls.Add($RemoveButton)
+
+$ViewButton = New-Object System.Windows.Forms.Button
+$ViewButton.Location = New-Object System.Drawing.Point(225,180)
+$ViewButton.Size = New-Object System.Drawing.Size(75,23)
+$ViewButton.Text = 'View'
+$form.Controls.Add($ViewButton)
 
 $form.Topmost = $true
 
