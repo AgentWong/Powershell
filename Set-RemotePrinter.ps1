@@ -1,8 +1,19 @@
+<#
+.SYNOPSIS
+This adds, removes, or views printers installed on remote computers (workstations only).
+
+.DESCRIPTION
+This uses the rundll32 printui.dll,PrintUIEntry command to install, remove, or view printers installed on remote workstations.
+This should only be required if a print driver needs to be installed from a print server and isn't already on a computer.
+Any printers installed using this tool will be available for all users on the computer.  If a printer needs to be removed,
+it must be removed using this tool or the printer will reappear.
+#>
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'Data Entry Form'
+$form.Text = 'Set-RemotePrinter'
 $form.Size = New-Object System.Drawing.Size(400,300)
 $form.StartPosition = 'CenterScreen'
 
