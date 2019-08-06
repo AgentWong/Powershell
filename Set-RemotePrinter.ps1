@@ -1,7 +1,6 @@
 <#
 .SYNOPSIS
 This adds, removes, or views printers installed on remote computers (workstations only).
-
 .DESCRIPTION
 This uses the rundll32 printui.dll,PrintUIEntry command to install, remove, or view printers installed on remote workstations.
 This should only be required if a print driver needs to be installed from a print server and isn't already on a computer.
@@ -9,6 +8,75 @@ Any printers installed using this tool will be available for all users on the co
 it must be removed using this tool or the printer will reappear.
 #>
 
+Function Add-RemotePrinter {
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$ComputerName,
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$ServerName,
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$PrinterName
+    )
+BEGIN {}
+
+PROCESS{
+Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ga /n \\$ServerName\$PrinterName"
+Start-Sleep -Seconds 3
+Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler"
+Start-Sleep -Seconds 3
+Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler"
+}
+
+END{}
+}
+
+Function Remove-RemotePrinter {
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$ComputerName,
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$ServerName,
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$PrinterName
+    )
+BEGIN {}
+
+PROCESS{
+Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName"
+Start-Sleep -Seconds 3
+Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler"
+Start-Sleep -Seconds 3
+Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler"
+}
+
+END{}
+}
+
+Function Get-RemotePrinter {
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True,
+        ValueFromPipelineByPropertyName=$True)]
+        [string]$ComputerName
+    )
+BEGIN {}
+
+PROCESS{
+Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge"
+}
+
+END{}
+}
+
+Function Generate-Form{
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -70,68 +138,15 @@ $form.Controls.Add($ViewButton)
 
 $form.Topmost = $true
 
+$AddButton.Add_Click({Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text})
+
+$RemoveButton.Add_Click({Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text})
+
+$ViewButton.Add_Click({Get-RemotePrinter -ComputerName $TargetComputerBox.Text})
+
 $form.ShowDialog()
 
-$AddButton.Add_Click({Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text})
-$RemoveButton.Add_Click({Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text})
-$ViewButton.Add_Click({Get-RemotePrinter -ComputerName $TargetComputerBox.Text})
-Function Add-RemotePrinter {
-    [cmdletbinding()]
-    Param(
-        [Parameter(Mandatory=$True)]
-        [string]$ComputerName,
-        [Parameter(Mandatory=$True)]
-        [string]$ServerName,
-        [Parameter(Mandatory=$True)]
-        [string]$PrinterName
-    )
-BEGIN {}
 
-PROCESS{
-Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$TargetComputer /ga /n \\$PrintServer\$Printer"
-Start-Sleep -Seconds 3
-Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$TargetComputer cmd /c net stop spooler"
-Start-Sleep -Seconds 3
-Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$TargetComputer cmd /c net start spooler"
 }
 
-END{}
-}
-
-Function Remove-RemotePrinter {
-    [cmdletbinding()]
-    Param(
-        [Parameter(Mandatory=$True)]
-        [string]$ComputerName,
-        [Parameter(Mandatory=$True)]
-        [string]$ServerName,
-        [Parameter(Mandatory=$True)]
-        [string]$PrinterName
-    )
-BEGIN {}
-
-PROCESS{
-Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$TargetComputer /gd /n \\$PrintServer\$Printer"
-Start-Sleep -Seconds 3
-Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$TargetComputer cmd /c net stop spooler"
-Start-Sleep -Seconds 3
-Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$TargetComputer cmd /c net start spooler"
-}
-
-END{}
-}
-
-Function Get-RemotePrinter {
-    [cmdletbinding()]
-    Param(
-        [Parameter(Mandatory=$True)]
-        [string]$ComputerName
-    )
-BEGIN {}
-
-PROCESS{
-Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$TargetComputer /ge"
-}
-
-END{}
-}
+Generate-Form
