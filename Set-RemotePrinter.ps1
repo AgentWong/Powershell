@@ -114,7 +114,7 @@ Function Get-RemotePrinter {
     [cmdletbinding()]
     Param(
         [Parameter(Mandatory=$True)]
-        [string]$ComputerName,
+        [string]$ComputerName
     )
 BEGIN {}
 
