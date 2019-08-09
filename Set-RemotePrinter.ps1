@@ -8,18 +8,6 @@ Any printers installed using this tool will be available for all users on the co
 it must be removed using this tool or the printer will reappear if you attempt to remove it from Devices and Printers.
 #>
 
-$CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-
-#Checks if the account running has certain text in its name, if not, it will relaunch the script as an administrator.
-if ($CurrentUser -notlike "*z0*") {
-    # Self-elevate the script if required
-    if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-        $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-        Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
-        Exit
-    }
-}
-
 # .Net methods for hiding/showing the console in the background
 Add-Type -Name Window -Namespace Console -MemberDefinition '
 [DllImport("Kernel32.dll")]
@@ -57,6 +45,23 @@ function Hide-Console
     [Console.Window]::ShowWindow($consolePtr, 0)
 }
 
+
+#Hides the Powershell console window.
+Hide-Console
+
+$CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+
+#Checks if the account running has certain text in its name, if not, it will relaunch the script as an administrator.
+if ($CurrentUser -notlike "*z0*") {
+    # Self-elevate the script if required
+    if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+        $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+        Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
+        Exit
+    }
+}
+
+
 Function Add-RemotePrinter {
     [cmdletbinding()]
     Param(
@@ -73,11 +78,11 @@ Function Add-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ga /n \\$ServerName\$PrinterName"
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ga /n \\$ServerName\$PrinterName" -WindowStyle Hidden
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler"
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler"
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
     }
 
     END { }
@@ -99,11 +104,11 @@ Function Remove-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName"
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName" -WindowStyle Hidden
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler"
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler"
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
     }
 
     END { }
@@ -119,7 +124,7 @@ Function Get-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge"
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge" -WindowStyle Hidden
     }
 
     END { }
@@ -195,8 +200,6 @@ Function New-Form {
 
     $ViewButton.Add_Click( { Get-RemotePrinter -ComputerName $TargetComputerBox.Text })
 
-    #Hides the Powershell console window.
-    Hide-Console
 
     #This actually creates the form as defined above and makes it visible.
     $form.ShowDialog()
