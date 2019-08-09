@@ -8,6 +8,20 @@ Any printers installed using this tool will be available for all users on the co
 it must be removed using this tool or the printer will reappear.
 #>
 
+$CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+
+#Checks if the account running is a z0 admin account, if not it will relaunch the script as an administrator.
+if($CurrentUser -notlike "*z0*"){
+# Self-elevate the script if required
+if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+     $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+     Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+     Exit
+    }
+   }
+}
+
 Function Add-RemotePrinter {
     [cmdletbinding()]
     Param(
@@ -32,7 +46,7 @@ Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$Comp
 }
 
 END{}
-}
+} #Add-RemotePrinter
 
 Function Remove-RemotePrinter {
     [cmdletbinding()]
@@ -58,7 +72,7 @@ Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$Comp
 }
 
 END{}
-}
+} #Remove-RemotePrinter
 
 Function Get-RemotePrinter {
     [cmdletbinding()]
@@ -74,8 +88,9 @@ Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "print
 }
 
 END{}
-}
+} #Get-RemotePrinter
 
+#Creates a basic Windows Form to serve as the GUI.
 Function Generate-Form{
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -138,15 +153,17 @@ $form.Controls.Add($ViewButton)
 
 $form.Topmost = $true
 
+#Button click events.
 $AddButton.Add_Click({Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text})
 
 $RemoveButton.Add_Click({Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text})
 
 $ViewButton.Add_Click({Get-RemotePrinter -ComputerName $TargetComputerBox.Text})
 
+#This actually creates the form as defined above and makes it visible.
 $form.ShowDialog()
 
 
-}
+} #Generate-Form
 
 Generate-Form
