@@ -61,7 +61,29 @@ if ($CurrentUser -notlike "*z0*") {
     }
 }
 
+Function Confirm-IsEmpty ([string[]]$Fields){
+    BEGIN { }
 
+    PROCESS {
+        [boolean[]]$Test = $Null
+        foreach ($Field in $Fields){
+            if($Field -eq $null -or $Field.Trim().Length -eq 0)
+            {
+               $Test += $true    
+            }
+        $Test += $false
+        }
+        if ($Test -contains $true)
+        {
+            return $true
+        }
+        else {
+            return $false
+        }
+    }
+
+    END { }
+} #Confirm-IsEmpty
 Function Add-RemotePrinter {
     [cmdletbinding()]
     Param(
@@ -191,14 +213,36 @@ Function New-Form {
     $ViewButton.Text = 'View'
     $form.Controls.Add($ViewButton)
 
-    $form.Topmost = $true
-
     #Button click events.
-    $AddButton.Add_Click( { Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text })
+    $AddButton.Add_Click( { 
+        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text,$PrintServerBox.Text,$PrinterBox.Text){
+            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+            $wshell.Popup("A textbox is empty!",0,"Oops!",48+0)
+        }
+        else{
+        Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
+        }
+    })
 
-    $RemoveButton.Add_Click( { Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text })
+    $RemoveButton.Add_Click( { 
+        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text,$PrintServerBox.Text,$PrinterBox.Text){
+            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+            $wshell.Popup("A textbox is empty!",0,"Oops!",48+0)
+        }
+        else{
+        Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
+        }
+    })
 
-    $ViewButton.Add_Click( { Get-RemotePrinter -ComputerName $TargetComputerBox.Text })
+    $ViewButton.Add_Click( { 
+        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text){
+            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+            $wshell.Popup("A textbox is empty!",0,"Oops!",48+0)
+        }
+        else{
+        Get-RemotePrinter -ComputerName $TargetComputerBox.Text 
+        }
+    })
 
 
     #This actually creates the form as defined above and makes it visible.
