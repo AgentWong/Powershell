@@ -19,6 +19,7 @@ public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
 
 function Show-Console
 {
+    #Show the Powershell console when called.
     $consolePtr = [Console.Window]::GetConsoleWindow()
 
     # Hide = 0,
@@ -36,19 +37,22 @@ function Show-Console
     # ForceMinimized = 11
 
     [Console.Window]::ShowWindow($consolePtr, 4)
-}
+} #Show-Console
 
 function Hide-Console
 {
+    #Hides the Powershell console window when called.
     $consolePtr = [Console.Window]::GetConsoleWindow()
     #0 hide
     [Console.Window]::ShowWindow($consolePtr, 0)
-}
+} #Hide-Console
 
 
 #Hides the Powershell console window.
+#Comment out and call Show-Console if you need to see it.
 Hide-Console
 
+#Gets the current user account running the script.
 $CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
 #Checks if the account running has certain text in its name, if not, it will relaunch the script as an administrator.
@@ -59,9 +63,10 @@ if ($CurrentUser -notlike "*z0*") {
         Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
         Exit
     }
-}
+} #Self-elevate check.
 
 Function Confirm-IsEmpty ([string[]]$Fields){
+    #Checks whether the input is blank.
     BEGIN { }
 
     PROCESS {
@@ -86,13 +91,15 @@ Function Confirm-IsEmpty ([string[]]$Fields){
 } #Confirm-IsEmpty
 
 Function Add-OutputBoxLine {
+    #Adds messages to the Status textbox.
     Param ($Message)
     $StatusBox.AppendText("$Message`r`n")
     $StatusBox.Refresh()
     $StatusBox.ScrollToCaret()
-}
+} #Add-OutputBoxLine
 
 Function Add-RemotePrinter {
+    #Adds a printer using rundll32 printui.dll,PrintUIEntry.
     [cmdletbinding()]
     Param(
         [Parameter(Mandatory = $True,
@@ -122,6 +129,7 @@ Function Add-RemotePrinter {
 } #Add-RemotePrinter
 
 Function Remove-RemotePrinter {
+    #Removes a printer that was added using rundll32 printui.dll,PrintUIEntry.
     [cmdletbinding()]
     Param(
         [Parameter(Mandatory = $True,
@@ -151,6 +159,7 @@ Function Remove-RemotePrinter {
 } #Remove-RemotePrinter
 
 Function Get-RemotePrinter {
+    #Views printers that were added using rundll32 printui.dll,PrintUIEntry.
     [cmdletbinding()]
     Param(
         [Parameter(Mandatory = $True,
@@ -167,12 +176,13 @@ Function Get-RemotePrinter {
     END { }
 } #Get-RemotePrinter
 
-#Creates a basic Windows Form to serve as the GUI.
 Function New-Form {
+    #Load Assemblies
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
     [System.Windows.Forms.Application]::EnableVisualStyles()
 
+    #Store form colors in variables.
     $FormBackColor = "#222222"
     $FormForeColor = "#c5c9ca"
     $PanelBackColor = "#3b3f42"
@@ -180,6 +190,7 @@ Function New-Form {
     $TextboxForeColor = "#c3803c"
     $ButtonBackColor = "#2e4058"
 
+    #Create a form.
     $form = New-Object System.Windows.Forms.Form
     $form.Text = 'Set-RemotePrinter'
     $form.Size = New-Object System.Drawing.Size(400, 340)
@@ -191,6 +202,7 @@ Function New-Form {
     $form.MaximizeBox = $false
     $form.MinimizeBox = $false
 
+    #Panel to group form objects.
     $Panel = New-Object Windows.Forms.Panel
     $Panel.Location = '5,5'
     $Panel.size = '375,290'
@@ -266,6 +278,7 @@ Function New-Form {
     $ViewButton.Text = 'View'
     $Panel.Controls.Add($ViewButton)
 
+    #Outputs status messages to the user.
     $StatusBox = New-Object System.Windows.Forms.TextBox
     $StatusBox.Location = New-Object System.Drawing.Point(40, 220)
     $StatusBox.Size = New-Object System.Drawing.Size(295, 60)
