@@ -17,8 +17,7 @@ public static extern IntPtr GetConsoleWindow();
 public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
 '
 
-function Show-Console
-{
+function Show-Console {
     #Show the Powershell console when called.
     $consolePtr = [Console.Window]::GetConsoleWindow()
 
@@ -39,8 +38,7 @@ function Show-Console
     [Console.Window]::ShowWindow($consolePtr, 4)
 } #Show-Console
 
-function Hide-Console
-{
+function Hide-Console {
     #Hides the Powershell console window when called.
     $consolePtr = [Console.Window]::GetConsoleWindow()
     #0 hide
@@ -65,21 +63,19 @@ if ($CurrentUser -notlike "*z0*") {
     }
 } #Self-elevate check.
 
-Function Confirm-IsEmpty ([string[]]$Fields){
+Function Confirm-IsEmpty ([string[]]$Fields) {
     #Checks whether the input is blank.
     BEGIN { }
 
     PROCESS {
         [boolean[]]$Test = $Null
-        foreach ($Field in $Fields){
-            if($Field -eq $null -or $Field.Trim().Length -eq 0)
-            {
-               $Test += $true    
+        foreach ($Field in $Fields) {
+            if ($Field -eq $null -or $Field.Trim().Length -eq 0) {
+                $Test += $true    
             }
-        $Test += $false
+            $Test += $false
         }
-        if ($Test -contains $true)
-        {
+        if ($Test -contains $true) {
             return $true
         }
         else {
@@ -291,37 +287,37 @@ Function New-Form {
 
     #Button click events.
     $AddButton.Add_Click( { 
-        $StatusBox.Clear()
-        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text,$PrintServerBox.Text,$PrinterBox.Text){
-            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A field is empty!",0,"Oops!",48+0)
-        }
-        else{
-        Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text -Verbose
-        }
-    })
+            $StatusBox.Clear()
+            if (Confirm-IsEmpty -Fields $TargetComputerBox.Text, $PrintServerBox.Text, $PrinterBox.Text) {
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
+            }
+            else {
+                Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text -Verbose
+            }
+        })
 
     $RemoveButton.Add_Click( { 
-        $StatusBox.Clear()
-        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text,$PrintServerBox.Text,$PrinterBox.Text){
-            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A field is empty!",0,"Oops!",48+0)
-        }
-        else{
-        Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
-        }
-    })
+            $StatusBox.Clear()
+            if (Confirm-IsEmpty -Fields $TargetComputerBox.Text, $PrintServerBox.Text, $PrinterBox.Text) {
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
+            }
+            else {
+                Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
+            }
+        })
 
     $ViewButton.Add_Click( { 
-        $StatusBox.Clear()
-        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text){
-            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A field is empty!",0,"Oops!",48+0)
-        }
-        else{
-        Get-RemotePrinter -ComputerName $TargetComputerBox.Text 
-        }
-    })
+            $StatusBox.Clear()
+            if (Confirm-IsEmpty -Fields $TargetComputerBox.Text) {
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
+            }
+            else {
+                Get-RemotePrinter -ComputerName $TargetComputerBox.Text 
+            }
+        })
 
 
     #This actually creates the form as defined above and makes it visible.
