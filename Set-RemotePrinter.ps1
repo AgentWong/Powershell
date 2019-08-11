@@ -87,7 +87,7 @@ Function Confirm-IsEmpty ([string[]]$Fields){
 
 Function Add-OutputBoxLine {
     Param ($Message)
-    $StatusBox.AppendText("`r`n$Message")
+    $StatusBox.AppendText("$Message`r`n")
     $StatusBox.Refresh()
     $StatusBox.ScrollToCaret()
 }
