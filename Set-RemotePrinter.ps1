@@ -171,70 +171,110 @@ Function Get-RemotePrinter {
 Function New-Form {
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
+    [System.Windows.Forms.Application]::EnableVisualStyles()
+
+    $FormBackColor = "#222222"
+    $FormForeColor = "#c5c9ca"
+    $PanelBackColor = "#3b3f42"
+    $TextboxBackColor = "#2b2b2b"
+    $TextboxForeColor = "#c3803c"
+    $ButtonBackColor = "#2e4058"
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = 'Set-RemotePrinter'
     $form.Size = New-Object System.Drawing.Size(400, 340)
     $form.StartPosition = 'CenterScreen'
+    $Form.Opacity = 1 #0.95
+    $Form.BackColor = $FormBackColor
+    $Form.ForeColor = $FormForeColor
+    $form.formborderstyle = "FixedSingle"
+    $form.MaximizeBox = $false
+    $form.MinimizeBox = $false
+
+    $Panel = New-Object Windows.Forms.Panel
+    $Panel.Location = '5,5'
+    $Panel.size = '375,290'
+    $Panel.BackColor = $PanelBackColor
+    $Form.Controls.Add($Panel)
 
     $TargetLabel = New-Object System.Windows.Forms.Label
     $TargetLabel.Location = New-Object System.Drawing.Point(75, 20)
     $TargetLabel.Size = New-Object System.Drawing.Size(225, 20)
+    $TargetLabel.BackColor = "Transparent"
     $TargetLabel.Text = 'Target Computer:'
-    $form.Controls.Add($TargetLabel)
+    $Panel.Controls.Add($TargetLabel)
 
     $TargetComputerBox = New-Object System.Windows.Forms.TextBox
     $TargetComputerBox.Location = New-Object System.Drawing.Point(75, 40)
     $TargetComputerBox.Size = New-Object System.Drawing.Size(225, 20)
-    $form.Controls.Add($TargetComputerBox)
+    $TargetComputerBox.ForeColor = $TextboxForeColor
+    $TargetComputerBox.BackColor = $TextboxBackColor
+    $TargetComputerBox.BorderStyle = "FixedSingle"
+    $Panel.Controls.Add($TargetComputerBox)
 
     $ServerLabel = New-Object System.Windows.Forms.Label
     $ServerLabel.Location = New-Object System.Drawing.Point(75, 70)
     $ServerLabel.Size = New-Object System.Drawing.Size(225, 20)
+    $ServerLabel.BackColor = "Transparent"
     $ServerLabel.Text = 'Print Server:'
-    $form.Controls.Add($ServerLabel)
+    $Panel.Controls.Add($ServerLabel)
 
     $PrintServerBox = New-Object System.Windows.Forms.TextBox
     $PrintServerBox.Location = New-Object System.Drawing.Point(75, 90)
     $PrintServerBox.Size = New-Object System.Drawing.Size(225, 20)
-    $form.Controls.Add($PrintServerBox)
+    $PrintServerBox.ForeColor = $TextboxForeColor
+    $PrintServerBox.BackColor = $TextboxBackColor
+    $PrintServerBox.BorderStyle = "FixedSingle"
+    $Panel.Controls.Add($PrintServerBox)
 
     $PrinterLabel = New-Object System.Windows.Forms.Label
     $PrinterLabel.Location = New-Object System.Drawing.Point(75, 120)
     $PrinterLabel.Size = New-Object System.Drawing.Size(225, 20)
+    $PrinterLabel.BackColor = "Transparent"
     $PrinterLabel.Text = 'Printer Name:'
-    $form.Controls.Add($PrinterLabel)
+    $Panel.Controls.Add($PrinterLabel)
 
     $PrinterBox = New-Object System.Windows.Forms.TextBox
     $PrinterBox.Location = New-Object System.Drawing.Point(75, 140)
     $PrinterBox.Size = New-Object System.Drawing.Size(225, 20)
-    $form.Controls.Add($PrinterBox)
+    $PrinterBox.ForeColor = $TextboxForeColor
+    $PrinterBox.BackColor = $TextboxBackColor
+    $PrinterBox.BorderStyle = "FixedSingle"
+    $Panel.Controls.Add($PrinterBox)
 
     $AddButton = New-Object System.Windows.Forms.Button
     $AddButton.Location = New-Object System.Drawing.Point(75, 180)
     $AddButton.Size = New-Object System.Drawing.Size(75, 23)
+    $AddButton.BackColor = $ButtonBackColor
+    $AddButton.FlatStyle = "Flat"
     $AddButton.Text = 'Add'
-    $form.Controls.Add($AddButton)
+    $Panel.Controls.Add($AddButton)
 
     $RemoveButton = New-Object System.Windows.Forms.Button
     $RemoveButton.Location = New-Object System.Drawing.Point(150, 180)
     $RemoveButton.Size = New-Object System.Drawing.Size(75, 23)
+    $RemoveButton.BackColor = $ButtonBackColor
+    $RemoveButton.FlatStyle = "Flat"
     $RemoveButton.Text = 'Remove'
-    $form.Controls.Add($RemoveButton)
+    $Panel.Controls.Add($RemoveButton)
 
     $ViewButton = New-Object System.Windows.Forms.Button
     $ViewButton.Location = New-Object System.Drawing.Point(225, 180)
     $ViewButton.Size = New-Object System.Drawing.Size(75, 23)
+    $ViewButton.BackColor = $ButtonBackColor
+    $ViewButton.FlatStyle = "Flat"
     $ViewButton.Text = 'View'
-    $form.Controls.Add($ViewButton)
+    $Panel.Controls.Add($ViewButton)
 
     $StatusBox = New-Object System.Windows.Forms.TextBox
-    $StatusBox.Location = New-Object System.Drawing.Point(75, 220)
-    $StatusBox.Size = New-Object System.Drawing.Size(225, 60)
-    #$StatusBox.ReadOnly = $true
+    $StatusBox.Location = New-Object System.Drawing.Point(40, 220)
+    $StatusBox.Size = New-Object System.Drawing.Size(295, 60)
+    $StatusBox.ForeColor = $TextboxForeColor
+    $StatusBox.BackColor = $TextboxBackColor
+    $StatusBox.BorderStyle = "FixedSingle"
+    $StatusBox.ReadOnly = $true
     $StatusBox.Multiline = $true
-    $StatusBox.ScrollBars = "Vertical"
-    $form.Controls.Add($StatusBox)
+    $Panel.Controls.Add($StatusBox)
 
     #Button click events.
     $AddButton.Add_Click( { 
