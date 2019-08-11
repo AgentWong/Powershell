@@ -84,6 +84,14 @@ Function Confirm-IsEmpty ([string[]]$Fields){
 
     END { }
 } #Confirm-IsEmpty
+
+Function Add-OutputBoxLine {
+    Param ($Message)
+    $StatusBox.AppendText("`r`n$Message")
+    $StatusBox.Refresh()
+    $StatusBox.ScrollToCaret()
+}
+
 Function Add-RemotePrinter {
     [cmdletbinding()]
     Param(
@@ -101,10 +109,13 @@ Function Add-RemotePrinter {
 
     PROCESS {
         Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ga /n \\$ServerName\$PrinterName" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Adding printer $PrinterName on $Computername"
         Start-Sleep -Seconds 3
         Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Stopping spooler on $ComputerName"
         Start-Sleep -Seconds 3
         Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
     }
 
     END { }
@@ -127,10 +138,13 @@ Function Remove-RemotePrinter {
 
     PROCESS {
         Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Removing printer $PrinterName on $Computername"
         Start-Sleep -Seconds 3
         Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Stopping spooler on $ComputerName"
         Start-Sleep -Seconds 3
         Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
     }
 
     END { }
@@ -147,6 +161,7 @@ Function Get-RemotePrinter {
 
     PROCESS {
         Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge" -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Viewing installed printers on $ComputerName"
     }
 
     END { }
@@ -159,7 +174,7 @@ Function New-Form {
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = 'Set-RemotePrinter'
-    $form.Size = New-Object System.Drawing.Size(400, 300)
+    $form.Size = New-Object System.Drawing.Size(400, 340)
     $form.StartPosition = 'CenterScreen'
 
     $TargetLabel = New-Object System.Windows.Forms.Label
@@ -213,21 +228,31 @@ Function New-Form {
     $ViewButton.Text = 'View'
     $form.Controls.Add($ViewButton)
 
+    $StatusBox = New-Object System.Windows.Forms.TextBox
+    $StatusBox.Location = New-Object System.Drawing.Point(75, 220)
+    $StatusBox.Size = New-Object System.Drawing.Size(225, 60)
+    #$StatusBox.ReadOnly = $true
+    $StatusBox.Multiline = $true
+    $StatusBox.ScrollBars = "Vertical"
+    $form.Controls.Add($StatusBox)
+
     #Button click events.
     $AddButton.Add_Click( { 
+        $StatusBox.Clear()
         if (Confirm-IsEmpty -Fields $TargetComputerBox.Text,$PrintServerBox.Text,$PrinterBox.Text){
             $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A textbox is empty!",0,"Oops!",48+0)
+            $wshell.Popup("A field is empty!",0,"Oops!",48+0)
         }
         else{
-        Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
+        Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text -Verbose
         }
     })
 
     $RemoveButton.Add_Click( { 
+        $StatusBox.Clear()
         if (Confirm-IsEmpty -Fields $TargetComputerBox.Text,$PrintServerBox.Text,$PrinterBox.Text){
             $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A textbox is empty!",0,"Oops!",48+0)
+            $wshell.Popup("A field is empty!",0,"Oops!",48+0)
         }
         else{
         Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
@@ -235,9 +260,10 @@ Function New-Form {
     })
 
     $ViewButton.Add_Click( { 
+        $StatusBox.Clear()
         if (Confirm-IsEmpty -Fields $TargetComputerBox.Text){
             $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A textbox is empty!",0,"Oops!",48+0)
+            $wshell.Popup("A field is empty!",0,"Oops!",48+0)
         }
         else{
         Get-RemotePrinter -ComputerName $TargetComputerBox.Text 
