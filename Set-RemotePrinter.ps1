@@ -111,13 +111,19 @@ Function Add-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ga /n \\$ServerName\$PrinterName" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList `
+            "printui.dll,PrintUIEntry /c \\$ComputerName /ga /n \\$ServerName\$PrinterName" -WindowStyle Hidden
+
         Add-OutputBoxLine -Message "Adding printer $PrinterName on $Computername"
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList `
+            "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
+
         Add-OutputBoxLine -Message "Stopping spooler on $ComputerName"
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList `
+            "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
+
         Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
     }
 
@@ -141,13 +147,16 @@ Function Remove-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList `
+            "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName" -WindowStyle Hidden
         Add-OutputBoxLine -Message "Removing printer $PrinterName on $Computername"
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" `
+            -WindowStyle Hidden
         Add-OutputBoxLine -Message "Stopping spooler on $ComputerName"
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" `
+            -WindowStyle Hidden
         Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
     }
 
@@ -165,7 +174,8 @@ Function Get-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge" -WindowStyle Hidden
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge" `
+            -WindowStyle Hidden
         Add-OutputBoxLine -Message "Viewing installed printers on $ComputerName"
     }
 
@@ -293,7 +303,7 @@ Function New-Form {
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
             }
             else {
-                Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text -Verbose
+                Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text
             }
         })
 
