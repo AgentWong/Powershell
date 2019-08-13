@@ -14,8 +14,7 @@ public static extern IntPtr GetConsoleWindow();
 public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
 '
 
-function Show-Console
-{
+function Show-Console {
     #Show the Powershell console when called.
     $consolePtr = [Console.Window]::GetConsoleWindow()
 
@@ -36,8 +35,7 @@ function Show-Console
     [Console.Window]::ShowWindow($consolePtr, 4)
 } #Show-Console
 
-function Hide-Console
-{
+function Hide-Console {
     $consolePtr = [Console.Window]::GetConsoleWindow()
     #0 hide
     [Console.Window]::ShowWindow($consolePtr, 0)
@@ -197,14 +195,14 @@ Function New-Form {
 
     #Button click events.
     $CopyButton.Add_Click( { 
-        if (Confirm-IsEmpty -Fields $TargetComputerBox.Text, $ServerPathBox.Text, $LocalPathBox.Text) {
-            $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
-            $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
-        }
-        else{
-        Copy-RobustItem -ComputerName $TargetComputerBox.Text -ServerPath $ServerPathBox.Text -LocalPath $LocalPathBox.Text 
-        }
-    })
+            if (Confirm-IsEmpty -Fields $TargetComputerBox.Text, $ServerPathBox.Text, $LocalPathBox.Text) {
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
+            }
+            else {
+                Copy-RobustItem -ComputerName $TargetComputerBox.Text -ServerPath $ServerPathBox.Text -LocalPath $LocalPathBox.Text 
+            }
+        })
 
     #This actually creates the form as defined above and makes it visible.
     $form.ShowDialog()
