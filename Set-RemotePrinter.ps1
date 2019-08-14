@@ -174,6 +174,10 @@ Function Get-RemotePrinter {
     BEGIN { }
 
     PROCESS {
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" `
+        -WindowStyle Hidden
+        Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
+        Start-Sleep -Seconds 3
         Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge" `
             -WindowStyle Hidden
         Add-OutputBoxLine -Message "Viewing installed printers on $ComputerName"
@@ -302,6 +306,10 @@ Function New-Form {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
             }
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1) -eq $false){
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
+            }
             else {
                 Add-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text
             }
@@ -313,6 +321,10 @@ Function New-Form {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
             }
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1) -eq $false){
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
+            }
             else {
                 Remove-RemotePrinter -ComputerName $TargetComputerBox.Text -ServerName $PrintServerBox.Text -PrinterName $PrinterBox.Text 
             }
@@ -323,6 +335,10 @@ Function New-Form {
             if (Confirm-IsEmpty -Fields $TargetComputerBox.Text) {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
+            }
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1) -eq $false){
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
             }
             else {
                 Get-RemotePrinter -ComputerName $TargetComputerBox.Text 
