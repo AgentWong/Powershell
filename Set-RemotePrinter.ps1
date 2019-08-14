@@ -306,7 +306,7 @@ Function New-Form {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
             }
-            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1) -eq $false){
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1 -Quiet) -eq $false){
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
             }
@@ -321,7 +321,7 @@ Function New-Form {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
             }
-            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1) -eq $false){
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1 -Quiet) -eq $false){
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
             }
@@ -336,7 +336,7 @@ Function New-Form {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
             }
-            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1) -eq $false){
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1 -Quiet) -eq $false){
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
             }
