@@ -19,6 +19,7 @@ if ($CurrentUser -notlike "*z0*") {
 $Progress = 0
 $SearchBase = "MyOU"
 $Computers = Get-ADComputer -Filter * -SearchBase $SearchBase -Properties LastLogonDate | Sort-Object Name
+$Option = New-CimSessionOption -Protocol Dcom
 $Count = $Computers.Count
 $Date = Get-Date -f MM-dd-yyyy
 
@@ -41,11 +42,12 @@ workflow QueryComputers {
             #Tests to see if the computer is pingable.
             $Online = Test-NetConnection -PSComputerName $_.Name -InformationLevel Detailed
             if ($Online.PingSucceeded -eq $True) {
-                $HostName = Get-WmiObject -PSComputerName $Online.RemoteAddress -ClassName Win32_ComputerSystem `
+                $Session = New-CimSession -PSComputerName $Online.RemoteAddress -SessionOption $Option
+                $HostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
                 -Property Name | Select-Object -ExpandProperty Name
                 $NameMatch = $_.Name -eq $HostName
                 Start-Sleep -Seconds 2
-                $Software = $null -eq (Get-WmiObject -PSComputerName $Online.RemoteAddress -ClassName CIM_DataFile `
+                $Software = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
                 -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
             }
             else {
@@ -64,6 +66,7 @@ workflow QueryComputers {
                 'HostName'  = $HostName
                 'NameMatch' = $NameMatch
             } #Close custom PSObject Hash Table.
+            $Session | Remove-CimSession
             Start-Sleep -Seconds 2
 
             #Tracks progress as it goes through each loop.
@@ -76,5 +79,5 @@ workflow QueryComputers {
 } #Workflow
 
 #Exports the output from the array into a CSV file.
-QueryComputers | Select-Object Computer, NameMatch, HostName, DNS, Ping, LogonDate, IPAddress, Software | 
+QueryComputers -Computers $Computers | Select-Object Computer, NameMatch, HostName, DNS, Ping, LogonDate, IPAddress, Software | 
 Sort-Object Computer | Export-Csv "C:\DRV\Scripts\Reports\SoftwareStatus_$Date.csv" -NoTypeInformation
