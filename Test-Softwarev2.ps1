@@ -22,47 +22,59 @@ $Computers = Get-ADComputer -Filter * -SearchBase $SearchBase -Properties LastLo
 $Count = $Computers.Count
 $Date = Get-Date -f MM-dd-yyyy
 
-#Custom array to store the ouput.
-$Store = @()
+workflow QueryComputers {
+    [cmdletbinding()]
+    param(
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
+        [Object[]]$Computers
+    )
+    foreach -Parallel ($Computer in $Computers) {
+        sequence {
+            #Sets variables.
+            $HostName = $Null
+            $NameMatch = $Null
+            $Software = $Null
+            $LogonDate = $_.LastLogonDate
 
-$Computers | ForEach-Object {
-    $HostName = $Null
-    $NameMatch = $Null
-    $Software = $Null
-    $LogonDate = $_.LastLogonDate
+            #Tests to see if the computer is pingable.
+            $Online = Test-NetConnection -PSComputerName $_.Name -InformationLevel Detailed
+            if ($Online.PingSucceeded -eq $True) {
+                $HostName = Get-WmiObject -PSComputerName $Online.RemoteAddress -ClassName Win32_ComputerSystem `
+                -Property Name | Select-Object -ExpandProperty Name
+                $NameMatch = $_.Name -eq $HostName
+                Start-Sleep -Seconds 2
+                $Software = $null -eq (Get-WmiObject -PSComputerName $Online.RemoteAddress -ClassName CIM_DataFile `
+                -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
+            }
+            else {
+                $HostName = "Not Online."
+                $Software = "Not Online."
+            } #Ping Test.
 
-    #Tests to see if the computer is pingable.
-    $Online = Test-NetConnection -ComputerName $_.Name -InformationLevel Detailed
-    if($Online.PingSucceeded -eq $True){
-        $HostName = Get-WmiObject -ComputerName $Online.RemoteAddress -ClassName Win32_ComputerSystem -Property Name | Select-Object -ExpandProperty Name
-        $NameMatch = $_.Name -eq $HostName
-        Start-Sleep -Seconds 2
-        $Avamar = $null -eq (Get-WmiObject -ComputerName $Online.RemoteAddress -ClassName CIM_DataFile -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
-    }
-    else
-    {
-        $HostName = "Not Online."
-        $Avamar = "Not Online."
-    } #Close Ping Test.
+            #Creates a custom Powershell Object to append to the storage array.
+            [PSCustomObject]@{
+                'Computer'  = $_.Name
+                'DNS'       = $Online.NameResolutionSucceeded
+                'Ping'      = $Online.PingSucceeded
+                'LogonDate' = $LogonDate
+                'IPAddress' = $Online.RemoteAddress
+                'Software'  = $Software
+                'HostName'  = $HostName
+                'NameMatch' = $NameMatch
+            } #Close custom PSObject Hash Table.
+            Start-Sleep -Seconds 2
 
-    #Creates a custom Powershell Object to append to the storage array.
-    $store += New-Object PSObject -Property @{
-    'Computer' = $_.Name
-    'DNS' = $Online.NameResolutionSucceeded
-    'Ping' = $Online.PingSucceeded
-    'LogonDate' = $LogonDate
-    'IPAddress' = $Online.RemoteAddress
-    'Software' = $Software
-    'HostName' = $HostName
-    'NameMatch' = $NameMatch
-    } #Close custom PSObject Hash Table.
-    Start-Sleep -Seconds 2
+            #Tracks progress as it goes through each loop.
+            $Progress++
+            Write-Progress -Activity "Checking Software status..." -Status "Checking: $Progress of $($Count)" `
+            -PercentComplete (($Progress / $Count) * 100) -Id 1
 
-    #Tracks progress as it goes through each loop.
-    $Progress++
-    Write-Progress -Activity "Checking Software status..." -Status "Checking: $Progress of $($Count)" -PercentComplete (($Progress / $Count) * 100) -Id 1
-} #Close For-Each Loop.
+        } #sequence
+    } #foreach
+} #Workflow
 
 #Exports the output from the array into a CSV file.
-$Store | Select-Object Computer,NameMatch,HostName,DNS,Ping,LogonDate,IPAddress,Software |
-Export-Csv "C:\DRV\Scripts\Reports\SoftwareStatus_$Date.csv" -NoTypeInformation
+QueryComputers | Select-Object Computer, NameMatch, HostName, DNS, Ping, LogonDate, IPAddress, Software | 
+Sort-Object Computer | Export-Csv "C:\DRV\Scripts\Reports\SoftwareStatus_$Date.csv" -NoTypeInformation
