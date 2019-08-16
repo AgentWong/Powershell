@@ -40,32 +40,28 @@ Workflow QueryComputers {
         $RemoteAddress = $Online | Select-Object -ExpandProperty RemoteAddress
         $NameResolutionSucceeded = $Online | Select-Object -ExpandProperty NameResolutionSucceeded
         if ($PingSucceeded -eq $True) {
-            $HostName = InlineScript {
+            $Holder = InlineScript {
                 $Option = New-CimSessionOption -Protocol Dcom
                 $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
                 if ($null -ne $Session) {
                     $HolderHostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
                         -Property Name | Select-Object -ExpandProperty Name
-                    $Session | Remove-CimSession
-                    $HolderHostName
-                }
-            }
-            $Software = InlineScript {
-                $Option = New-CimSessionOption -Protocol Dcom
-                $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
-                if ($null -ne $Session) {
                     $HolderSoftware = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
                             -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
                     $Session | Remove-CimSession
+                    $HolderHostName
                     $HolderSoftware
                 }
             }
-            $NameMatch = $HostName -eq $Computer
+            $HostName = $Holder[0]
+            $Software = $Holder[1]
+            $NameMatch = $HostName -eq $ComputerName
 
         }
         else {
             $HostName = "Not Online."
             $Software = "Not Online."
+            $NameMatch = "Not Online."
         } 
 
         [PSCustomObject]@{
