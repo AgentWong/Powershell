@@ -28,57 +28,57 @@ Workflow QueryComputers {
         [Object[]]$Computers
     )
     foreach -Parallel ($Computer in $Computers) {
-                $HostName = $Null
-                $NameMatch = $Null
-                $Software = $Null
-                $LogonDate = InlineScript{
-                $using:Computer | Select-Object -ExpandProperty LastLogonDate
-                }
-                $ComputerName = $Computer | Select-Object -ExpandProperty Name
-                $Online = Test-NetConnection -ComputerName $ComputerName -InformationLevel Detailed
-                $PingSucceeded = $Online | Select-Object -ExpandProperty PingSucceeded
-                $RemoteAddress = $Online | Select-Object -ExpandProperty RemoteAddress
-                $NameResolutionSucceeded = $Online | Select-Object -ExpandProperty NameResolutionSucceeded
-                if ($PingSucceeded -eq $True) {
-                    $HostName = InlineScript{
-                        $Option = New-CimSessionOption -Protocol Dcom
-                        $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
-                        if($null -ne $Session){
-                        $HolderHostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
+        $HostName = $Null
+        $NameMatch = $Null
+        $Software = $Null
+        $LogonDate = InlineScript {
+            $using:Computer | Select-Object -ExpandProperty LastLogonDate
+        }
+        $ComputerName = $Computer | Select-Object -ExpandProperty Name
+        $Online = Test-NetConnection -ComputerName $ComputerName -InformationLevel Detailed
+        $PingSucceeded = $Online | Select-Object -ExpandProperty PingSucceeded
+        $RemoteAddress = $Online | Select-Object -ExpandProperty RemoteAddress
+        $NameResolutionSucceeded = $Online | Select-Object -ExpandProperty NameResolutionSucceeded
+        if ($PingSucceeded -eq $True) {
+            $HostName = InlineScript {
+                $Option = New-CimSessionOption -Protocol Dcom
+                $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
+                if ($null -ne $Session) {
+                    $HolderHostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
                         -Property Name | Select-Object -ExpandProperty Name
-                        $Session | Remove-CimSession
-                        $HolderHostName
-                        }
-                    }
-                    $Software = InlineScript{
-                        $Option = New-CimSessionOption -Protocol Dcom
-                        $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
-                        if($null -ne $Session){
-                        $HolderAvamar = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
-                        -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
-                        $Session | Remove-CimSession
-                        $HolderSoftware
-                        }
-                    }
-                    $NameMatch = $HostName -eq $Computer
-
+                    $Session | Remove-CimSession
+                    $HolderHostName
                 }
-                else {
-                    $HostName = "Not Online."
-                    $Avamar = "Not Online."
-                } 
-
-                [PSCustomObject]@{
-                    'Computer'  = $ComputerName
-                    'DNS'       = $NameResolutionSucceeded
-                    'Ping'      = $PingSucceeded
-                    'LogonDate' = $LogonDate
-                    'IPAddress' = $RemoteAddress
-                    'Software'    = $Software
-                    'HostName'  = $HostName
-                    'NameMatch' = $NameMatch
-                } 
             }
+            $Software = InlineScript {
+                $Option = New-CimSessionOption -Protocol Dcom
+                $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
+                if ($null -ne $Session) {
+                    $HolderSoftware = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
+                            -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
+                    $Session | Remove-CimSession
+                    $HolderSoftware
+                }
+            }
+            $NameMatch = $HostName -eq $Computer
+
+        }
+        else {
+            $HostName = "Not Online."
+            $Software = "Not Online."
+        } 
+
+        [PSCustomObject]@{
+            'Computer'  = $ComputerName
+            'DNS'       = $NameResolutionSucceeded
+            'Ping'      = $PingSucceeded
+            'LogonDate' = $LogonDate
+            'IPAddress' = $RemoteAddress
+            'Software'  = $Software
+            'HostName'  = $HostName
+            'NameMatch' = $NameMatch
+        } 
+    }
 }
 
 #Exports the output from the array into a CSV file.
