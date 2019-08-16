@@ -46,7 +46,7 @@ Workflow QueryComputers {
                 if ($null -ne $Session) {
                     $HolderHostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
                         -Property Name | Select-Object -ExpandProperty Name
-                    $HolderSoftware = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
+                    $HolderSoftware = $null -ne (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
                             -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
                     $Session | Remove-CimSession
                     $HolderHostName
