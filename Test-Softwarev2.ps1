@@ -16,67 +16,70 @@ if ($CurrentUser -notlike "*z0*") {
     }
 } #Self-elevate check.
 
-$Progress = 0
 $SearchBase = "MyOU"
 $Computers = Get-ADComputer -Filter * -SearchBase $SearchBase -Properties LastLogonDate | Sort-Object Name
-$Option = New-CimSessionOption -Protocol Dcom
-$Count = $Computers.Count
+
 $Date = Get-Date -f MM-dd-yyyy
 
-workflow QueryComputers {
+Workflow QueryComputers {
     [cmdletbinding()]
     param(
-        [Parameter(Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true)]
         [Object[]]$Computers
     )
     foreach -Parallel ($Computer in $Computers) {
-        sequence {
-            #Sets variables.
-            $HostName = $Null
-            $NameMatch = $Null
-            $Software = $Null
-            $LogonDate = $_.LastLogonDate
+                $HostName = $Null
+                $NameMatch = $Null
+                $Software = $Null
+                $LogonDate = InlineScript{
+                $using:Computer | Select-Object -ExpandProperty LastLogonDate
+                }
+                $ComputerName = $Computer | Select-Object -ExpandProperty Name
+                $Online = Test-NetConnection -ComputerName $ComputerName -InformationLevel Detailed
+                $PingSucceeded = $Online | Select-Object -ExpandProperty PingSucceeded
+                $RemoteAddress = $Online | Select-Object -ExpandProperty RemoteAddress
+                $NameResolutionSucceeded = $Online | Select-Object -ExpandProperty NameResolutionSucceeded
+                if ($PingSucceeded -eq $True) {
+                    $HostName = InlineScript{
+                        $Option = New-CimSessionOption -Protocol Dcom
+                        $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
+                        if($null -ne $Session){
+                        $HolderHostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
+                        -Property Name | Select-Object -ExpandProperty Name
+                        $Session | Remove-CimSession
+                        $HolderHostName
+                        }
+                    }
+                    $Software = InlineScript{
+                        $Option = New-CimSessionOption -Protocol Dcom
+                        $Session = New-CimSession -ComputerName $using:RemoteAddress -SessionOption $Option
+                        if($null -ne $Session){
+                        $HolderAvamar = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
+                        -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
+                        $Session | Remove-CimSession
+                        $HolderSoftware
+                        }
+                    }
+                    $NameMatch = $HostName -eq $Computer
 
-            #Tests to see if the computer is pingable.
-            $Online = Test-NetConnection -PSComputerName $_.Name -InformationLevel Detailed
-            if ($Online.PingSucceeded -eq $True) {
-                $Session = New-CimSession -PSComputerName $Online.RemoteAddress -SessionOption $Option
-                $HostName = Get-CimInstance -CimSession $Session -ClassName Win32_ComputerSystem `
-                -Property Name | Select-Object -ExpandProperty Name
-                $NameMatch = $_.Name -eq $HostName
-                Start-Sleep -Seconds 2
-                $Software = $null -eq (Get-CimInstance -CimSession $Session -ClassName CIM_DataFile `
-                -Filter "drive='C:' AND path='\\Program Files\\Software\\var\\' AND extension='cfg'")
+                }
+                else {
+                    $HostName = "Not Online."
+                    $Avamar = "Not Online."
+                } 
+
+                [PSCustomObject]@{
+                    'Computer'  = $ComputerName
+                    'DNS'       = $NameResolutionSucceeded
+                    'Ping'      = $PingSucceeded
+                    'LogonDate' = $LogonDate
+                    'IPAddress' = $RemoteAddress
+                    'Software'    = $Software
+                    'HostName'  = $HostName
+                    'NameMatch' = $NameMatch
+                } 
             }
-            else {
-                $HostName = "Not Online."
-                $Software = "Not Online."
-            } #Ping Test.
-
-            #Creates a custom Powershell Object to append to the storage array.
-            [PSCustomObject]@{
-                'Computer'  = $_.Name
-                'DNS'       = $Online.NameResolutionSucceeded
-                'Ping'      = $Online.PingSucceeded
-                'LogonDate' = $LogonDate
-                'IPAddress' = $Online.RemoteAddress
-                'Software'  = $Software
-                'HostName'  = $HostName
-                'NameMatch' = $NameMatch
-            } #Close custom PSObject Hash Table.
-            $Session | Remove-CimSession
-            Start-Sleep -Seconds 2
-
-            #Tracks progress as it goes through each loop.
-            $Progress++
-            Write-Progress -Activity "Checking Software status..." -Status "Checking: $Progress of $($Count)" `
-            -PercentComplete (($Progress / $Count) * 100) -Id 1
-
-        } #sequence
-    } #foreach
-} #Workflow
+}
 
 #Exports the output from the array into a CSV file.
 QueryComputers -Computers $Computers | Select-Object Computer, NameMatch, HostName, DNS, Ping, LogonDate, IPAddress, Software | 
