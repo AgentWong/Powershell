@@ -66,7 +66,7 @@ Function Confirm-IsEmpty ([string[]]$Fields) {
     PROCESS {
         [boolean[]]$Test = $Null
         foreach ($Field in $Fields) {
-            if ($Field -eq $null -or $Field.Trim().Length -eq 0) {
+            if ($null -eq $Field -or $Field.Trim().Length -eq 0) {
                 $Test += $true    
             }
             $Test += $false
@@ -198,6 +198,10 @@ Function New-Form {
             if (Confirm-IsEmpty -Fields $TargetComputerBox.Text, $ServerPathBox.Text, $LocalPathBox.Text) {
                 $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
                 $wshell.Popup("A field is empty!", 0, "Oops!", 48 + 0)
+            }
+            elseif((Test-Connection -ComputerName $TargetComputerBox.Text -Count 1 -Quiet) -eq $false){
+                $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+                $wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
             }
             else {
                 Copy-RobustItem -ComputerName $TargetComputerBox.Text -ServerPath $ServerPathBox.Text -LocalPath $LocalPathBox.Text 
