@@ -69,7 +69,7 @@ Function Confirm-IsEmpty ([string[]]$Fields) {
     PROCESS {
         [boolean[]]$Test = $Null
         foreach ($Field in $Fields) {
-            if ($Field -eq $null -or $Field.Trim().Length -eq 0) {
+            if ($null -eq $Field -or $Field.Trim().Length -eq 0) {
                 $Test += $true    
             }
             $Test += $false
