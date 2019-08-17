@@ -12,7 +12,6 @@ it must be removed using this tool or the printer will reappear if you attempt t
 Add-Type -Name Window -Namespace Console -MemberDefinition '
 [DllImport("Kernel32.dll")]
 public static extern IntPtr GetConsoleWindow();
-
 [DllImport("user32.dll")]
 public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
 '
@@ -70,7 +69,7 @@ Function Confirm-IsEmpty ([string[]]$Fields) {
     PROCESS {
         [boolean[]]$Test = $Null
         foreach ($Field in $Fields) {
-            if ($null -eq $Field -or $Field.Trim().Length -eq 0) {
+            if ($Field -eq $null -or $Field.Trim().Length -eq 0) {
                 $Test += $true    
             }
             $Test += $false
@@ -116,15 +115,8 @@ Function Add-RemotePrinter {
 
         Add-OutputBoxLine -Message "Adding printer $PrinterName on $Computername"
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList `
-            "\\$ComputerName cmd /c net stop spooler" -WindowStyle Hidden
-
-        Add-OutputBoxLine -Message "Stopping spooler on $ComputerName"
-        Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList `
-            "\\$ComputerName cmd /c net start spooler" -WindowStyle Hidden
-
-        Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
+        Get-Service -Name 'spooler' -Computername $ComputerName | Restart-Service -PassThru
+        Add-OutputBoxLine -Message "Restarting spooler on $ComputerName"
     }
 
     END { }
@@ -151,13 +143,8 @@ Function Remove-RemotePrinter {
             "printui.dll,PrintUIEntry /c \\$ComputerName /gd /n \\$ServerName\$PrinterName" -WindowStyle Hidden
         Add-OutputBoxLine -Message "Removing printer $PrinterName on $Computername"
         Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net stop spooler" `
-            -WindowStyle Hidden
-        Add-OutputBoxLine -Message "Stopping spooler on $ComputerName"
-        Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" `
-            -WindowStyle Hidden
-        Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
+        Get-Service -Name 'spooler' -Computername $ComputerName | Restart-Service -PassThru
+        Add-OutputBoxLine -Message "Restarting spooler on $ComputerName"
     }
 
     END { }
@@ -174,12 +161,10 @@ Function Get-RemotePrinter {
     BEGIN { }
 
     PROCESS {
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName cmd /c net start spooler" `
-        -WindowStyle Hidden
+        Get-Service -Name 'spooler' -Computername $ComputerName | Start-Service -PassThru
         Add-OutputBoxLine -Message "Starting spooler on $ComputerName"
-        Start-Sleep -Seconds 3
-        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge" `
-            -WindowStyle Hidden
+        Start-Sleep -Seconds 5
+        Start-Process -FilePath "$env:windir\System32\rundll32.exe" -ArgumentList "printui.dll,PrintUIEntry /c \\$ComputerName /ge"
         Add-OutputBoxLine -Message "Viewing installed printers on $ComputerName"
     }
 
