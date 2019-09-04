@@ -48,12 +48,12 @@ function Hide-Console {
 Show-Console
 
 
-    # Self-elevate the script if required
-    if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-        $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-        Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
-        Exit
-    }
+# Self-elevate the script if required
+if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+    Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
+    Exit
+}
 Import-Module ActiveDirectory
 
 #Functions
@@ -482,33 +482,33 @@ Function Get-RemoteComputerInfo {
         $NetConnectTypeFinal = "$NetConnectType $NetSpeed Mbps"
 
         [PSCustomObject]@{
-            'UserName'                = $UserName
-            'HostName'                = $HostName
-            'Screen'                  = $Screen
-            'UserProfiles'            = $UserProfilesResult
-            'Model'                   = $FinalModel
-            'IPAddress'               = $IPAddress
-            'OS'                      = $OSFinal
-            'Serial'                  = $Serial
-            'BIOSVersion'             = $BIOSVersionFinal
-            'CurrentTime'             = $CurrentTime
-            'InstallDate'             = $InstallDate
-            'NetConnectType'          = $NetConnectTypeFinal
-            'LastBootTime'            = $LastBoot
-            'FreeDiskSpace'           = $FreeDiskSpace
-            'SecureBoot'              = $SecureBoot
-            'BitlockerStatus'         = $BitlockerStatus
-            'BitlockerConversion'     = $BitlockerConversion
-            'SCCMStatus'              = $SCCMStatus
-            'SCCMVersion'             = $SCCMVersionResult
-            'SCCMUpdate'              = $LastUpdate
-            'SCCMLastDate'            = $LastDate
-            'RebootPending'           = $RebootPending
-            'CcmExec'                 = $CcmExec
-            'Bits'                    = $Bits
-            'Winmgmt'                 = $Winmgmt
-            'Wuauserv'                = $Wuauserv
-            'DNSSuffix'               = $DNSSuffix
+            'UserName'            = $UserName
+            'HostName'            = $HostName
+            'Screen'              = $Screen
+            'UserProfiles'        = $UserProfilesResult
+            'Model'               = $FinalModel
+            'IPAddress'           = $IPAddress
+            'OS'                  = $OSFinal
+            'Serial'              = $Serial
+            'BIOSVersion'         = $BIOSVersionFinal
+            'CurrentTime'         = $CurrentTime
+            'InstallDate'         = $InstallDate
+            'NetConnectType'      = $NetConnectTypeFinal
+            'LastBootTime'        = $LastBoot
+            'FreeDiskSpace'       = $FreeDiskSpace
+            'SecureBoot'          = $SecureBoot
+            'BitlockerStatus'     = $BitlockerStatus
+            'BitlockerConversion' = $BitlockerConversion
+            'SCCMStatus'          = $SCCMStatus
+            'SCCMVersion'         = $SCCMVersionResult
+            'SCCMUpdate'          = $LastUpdate
+            'SCCMLastDate'        = $LastDate
+            'RebootPending'       = $RebootPending
+            'CcmExec'             = $CcmExec
+            'Bits'                = $Bits
+            'Winmgmt'             = $Winmgmt
+            'Wuauserv'            = $Wuauserv
+            'DNSSuffix'           = $DNSSuffix
         }
     }
     END { 
@@ -571,7 +571,7 @@ Add-Type -AssemblyName PresentationFramework
 <Window x:Name="Get_ComputerStatus"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Get-ComputerStatus" Height="1000" Width="564.5" Foreground="#c5c9ca" Background="#FF222222" ResizeMode="NoResize" FontFamily="Segoe UI Semibold">
+        Title="Get-RemoteComputerStatus" Height="1000" Width="564.5" Foreground="#c5c9ca" Background="#FF222222" ResizeMode="NoResize" FontFamily="Segoe UI Semibold">
     <Window.Resources>
         <Style TargetType="TextBlock" >
             <Setter Property="Foreground" Value="#00FFFF" />
