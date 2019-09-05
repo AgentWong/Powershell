@@ -725,7 +725,6 @@ $DNSListBox = $Form.FindName("DNSListBox")
             [void]$wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
         }
         else {
-            $Time = Measure-Command -Expression {
                 $CompName = $TargetComputerBox.Text
                 $Session = New-PSSession -ComputerName $CompName
                 $ComputerInfo = Invoke-Command -Session $Session -ScriptBlock ${Function:Get-RemoteComputerInfo}
@@ -789,7 +788,6 @@ $DNSListBox = $Form.FindName("DNSListBox")
                     }
                 }
                 [GC]::Collect()
-            }
         }
     })
 #Copies hostname in textbox to clipboard.
