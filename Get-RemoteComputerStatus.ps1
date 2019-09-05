@@ -1,9 +1,6 @@
 <#
 .SYNOPSIS
 A proof-of-concept scanning tool intended to speed up scanning of WMI/CIM information.
-
-.DESCRIPTION
-An experimental script meant to execute data gathering queries on the remote computer in question using Invoke-Command and runspaces.
 #>
 
 # .Net methods for hiding/showing the console in the background
@@ -44,8 +41,7 @@ function Hide-Console {
 
 
 #Hides the Powershell console window.
-#Comment out and call Show-Console if you need to see it.
-Show-Console
+Hide-Console
 
 
 # Self-elevate the script if required
