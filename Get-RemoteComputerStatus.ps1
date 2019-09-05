@@ -81,13 +81,6 @@ Function Confirm-IsEmpty ([string[]]$Fields) {
     END { }
 } #Confirm-IsEmpty
 
-Function Add-OutputBoxLine {
-    #Adds messages to the Status textbox.
-    Param ($Message)
-    [string]$OutMessage = $Message
-    $StatusBox.AppendText("$OutMessage`r`n")
-} #Add-OutputBoxLine
-
 Function Get-RemoteComputerInfo {
     BEGIN { 
         #region Runspace Pool
