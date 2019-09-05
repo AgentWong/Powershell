@@ -349,16 +349,6 @@ Function Get-RemoteComputerInfo {
             
         #Pre-Evaluation
 
-        #VPN check
-        $IsVPN = $null
-        $VPNAdapter = $null
-        ForEach ($NetAdapterConfigItem in $NetAdapterConfigResult) {
-            if ($NetAdapterConfigItem.Description -like "*AnyConnect*") {
-                $IsVPN = $true
-                $VPNAdapter = $NetAdapterConfigItem
-            }
-        }
-
         #Expands and defines properties.
         $UserNamePre = $ComputerSystemResult | Select-Object -ExpandProperty UserName
         $UserName = $UserNamePre -replace '(.*[\\\/])', ''
@@ -436,18 +426,11 @@ Function Get-RemoteComputerInfo {
             $SecureBoot = "Disabled"
         }
         #Connection type
-        if ($IsVPN) {
-            $NetConnectType = "VPN"
-            $IPAddressArr = @()
-            $IPAddressArr = $VPNAdapter | Select-Object -ExpandProperty IPAddress
-            $IPAddress = $IPAddressArr[0]
-        }
-        else {
-            $NetConnectType = $NetAdapterResult | Select-Object -First 1 -ExpandProperty NetConnectionID
-            $IPAddressArr = @()
-            $IPAddressArr = $NetAdapterConfigResult[0] | Select-Object -ExpandProperty IPAddress
-            $IPAddress = $IPAddressArr[0]
-        }
+        $NetConnectType = $NetAdapterResult | Select-Object -First 1 -ExpandProperty NetConnectionID
+        $IPAddressArr = @()
+        $IPAddressArr = $NetAdapterConfigResult[0] | Select-Object -ExpandProperty IPAddress
+        $IPAddress = $IPAddressArr[0]
+
         #SCCM Status
         if (($null -ne $SCCMVersionResult) -and ($null -eq $SCCMLastErrorResult)) {
             $SCCMStatus = "OK"
@@ -725,69 +708,69 @@ $DNSListBox = $Form.FindName("DNSListBox")
             [void]$wshell.Popup("The computer is not online!", 0, "Oops!", 48 + 0)
         }
         else {
-                $CompName = $TargetComputerBox.Text
-                $Session = New-PSSession -ComputerName $CompName
-                $ComputerInfo = Invoke-Command -Session $Session -ScriptBlock ${Function:Get-RemoteComputerInfo}
-                Remove-PSSession -Session $Session
+            $CompName = $TargetComputerBox.Text
+            $Session = New-PSSession -ComputerName $CompName
+            $ComputerInfo = Invoke-Command -Session $Session -ScriptBlock ${Function:Get-RemoteComputerInfo}
+            Remove-PSSession -Session $Session
 
-                #Post-Evaluation
-                $Online2 = Test-Connection -ComputerName $CompName -Count 1
-                [string]$LatencyPre = $Online2.ResponseTime
-                $Latency = $LatencyPre + "ms"
-                $ComputerAD = Get-ADComputer -Identity $ComputerInfo.HostName -Property Description | Select-Object -ExpandProperty Description
-                if ($ComputerInfo.Username) {
-                    $UserADPre = Get-ADUser -Identity $ComputerInfo.UserName -Property Name, TelephoneNumber, Description
-                    $UserADName = $UserADPre.Name
-                    $UserADPhone = $UserADPre.TelephoneNumber
-                    $UserADDesc = $UserADPre.Description
-                    $UserAD = "$UserADName " + "/" + " $UserADPhone " + "/" + " $UserADDesc"
+            #Post-Evaluation
+            $Online2 = Test-Connection -ComputerName $CompName -Count 1
+            [string]$LatencyPre = $Online2.ResponseTime
+            $Latency = $LatencyPre + "ms"
+            $ComputerAD = Get-ADComputer -Identity $ComputerInfo.HostName -Property Description | Select-Object -ExpandProperty Description
+            if ($ComputerInfo.Username) {
+                $UserADPre = Get-ADUser -Identity $ComputerInfo.UserName -Property Name, TelephoneNumber, Description
+                $UserADName = $UserADPre.Name
+                $UserADPhone = $UserADPre.TelephoneNumber
+                $UserADDesc = $UserADPre.Description
+                $UserAD = "$UserADName " + "/" + " $UserADPhone " + "/" + " $UserADDesc"
+            }
+            else {
+                $ComputerInfo.UserName = "No user logged on."
+                $UserAD = "No user logged on."
+            }
+            $ComputerInfo | Add-Member -NotePropertyName Latency -NotePropertyValue $Latency
+            $ComputerInfo | Add-Member -NotePropertyName ComputerAD -NotePropertyValue $ComputerAD
+            $ComputerInfo | Add-Member -NotePropertyName UserAD -NotePropertyValue $UserAD
+
+
+            if ($null -ne $ComputerInfo) {
+                Set-TextBlock -TextBlock $LoggedOnUserTextBlock -Text $ComputerInfo.UserName
+                Set-TextBlock -TextBlock $UserADDescTextBlock -Text $ComputerInfo.UserAD
+                Set-TextBlock -TextBlock $ComputerADDescTextBlock -Text $ComputerInfo.ComputerAD
+                Set-TextBlock -TextBlock $HostNameTextBlock -Text $ComputerInfo.HostName
+                Set-TextBlock -TextBlock $DisplayStatusTextBlock -Text $ComputerInfo.Screen
+                Set-TextBlock -TextBlock $UserProfilesTextBlock -Text $ComputerInfo.UserProfiles
+                Set-TextBlock -TextBlock $ModelTextBlock -Text $ComputerInfo.Model
+                Set-TextBlock -TextBlock $IPAddressTextBlock -Text $ComputerInfo.IPAddress
+                Set-TextBlock -TextBlock $OSTextBlock -Text $ComputerInfo.OS
+                Set-TextBlock -TextBlock $ServiceTagTextBlock -Text $ComputerInfo.Serial
+                Set-TextBlock -TextBlock $BIOSVersionTextBlock -Text $ComputerInfo.BIOSVersion
+                Set-TextBlock -TextBlock $CurrentTimeTextBlock -Text $ComputerInfo.CurrentTime
+                Set-TextBlock -TextBlock $OSInstallDateTextBlock -Text $ComputerInfo.InstallDate
+                Set-TextBlock -TextBlock $NetConnectionTextBlock -Text $ComputerInfo.NetConnectType
+                Set-TextBlock -TextBlock $PingTextBlock -Text $ComputerInfo.Latency
+                Set-TextBlock -TextBlock $LastBootTextBlock -Text $ComputerInfo.LastBootTime
+                Set-TextBlock -TextBlock $FreeSpaceTextBlock -Text $ComputerInfo.FreeDiskSpace
+                Set-TextBlock -TextBlock $BIOSSecureBootTextBlock -Text $ComputerInfo.SecureBoot
+                Set-TextBlock -TextBlock $BitlockerStatusTextBlock -Text $ComputerInfo.BitlockerStatus
+                Set-TextBlock -TextBlock $BitlockerConversionTextBlock -Text $ComputerInfo.BitlockerConversion
+                Set-TextBlock -TextBlock $SCCMStatusTextBlock -Text $ComputerInfo.SCCMStatus
+                Set-TextBlock -TextBlock $SCCMVersionTextBlock -Text $ComputerInfo.SCCMVersion
+                Set-TextBlock -TextBlock $SCCMLastDateTextBlock -Text $ComputerInfo.SCCMLastDate
+                Set-TextBlock -TextBlock $SCCMLastUpdateTextBlock -Text $ComputerInfo.SCCMUpdate
+                Set-TextBlock -TextBlock $RebootPendingTextBlock -Text $ComputerInfo.RebootPending
+                Set-TextBlock -TextBlock $CcmExecTextBlock -Text $ComputerInfo.CcmExec
+                Set-TextBlock -TextBlock $BitsTextBlock -Text $ComputerInfo.Bits
+                Set-TextBlock -TextBlock $WinmgmtTextBlock -Text $ComputerInfo.Winmgmt
+                Set-TextBlock -TextBlock $WuauservTextBlock -Text $ComputerInfo.Wuauserv
+
+                $DNSSuffixes = $ComputerInfo.DNSSuffix
+                foreach ($DNSSuffix in $DNSSuffixes) {
+                    [void]$DNSListBox.Items.Add($DNSSuffix)
                 }
-                else {
-                    $ComputerInfo.UserName = "No user logged on."
-                    $UserAD = "No user logged on."
-                }
-                $ComputerInfo | Add-Member -NotePropertyName Latency -NotePropertyValue $Latency
-                $ComputerInfo | Add-Member -NotePropertyName ComputerAD -NotePropertyValue $ComputerAD
-                $ComputerInfo | Add-Member -NotePropertyName UserAD -NotePropertyValue $UserAD
-
-
-                if ($null -ne $ComputerInfo) {
-                    Set-TextBlock -TextBlock $LoggedOnUserTextBlock -Text $ComputerInfo.UserName
-                    Set-TextBlock -TextBlock $UserADDescTextBlock -Text $ComputerInfo.UserAD
-                    Set-TextBlock -TextBlock $ComputerADDescTextBlock -Text $ComputerInfo.ComputerAD
-                    Set-TextBlock -TextBlock $HostNameTextBlock -Text $ComputerInfo.HostName
-                    Set-TextBlock -TextBlock $DisplayStatusTextBlock -Text $ComputerInfo.Screen
-                    Set-TextBlock -TextBlock $UserProfilesTextBlock -Text $ComputerInfo.UserProfiles
-                    Set-TextBlock -TextBlock $ModelTextBlock -Text $ComputerInfo.Model
-                    Set-TextBlock -TextBlock $IPAddressTextBlock -Text $ComputerInfo.IPAddress
-                    Set-TextBlock -TextBlock $OSTextBlock -Text $ComputerInfo.OS
-                    Set-TextBlock -TextBlock $ServiceTagTextBlock -Text $ComputerInfo.Serial
-                    Set-TextBlock -TextBlock $BIOSVersionTextBlock -Text $ComputerInfo.BIOSVersion
-                    Set-TextBlock -TextBlock $CurrentTimeTextBlock -Text $ComputerInfo.CurrentTime
-                    Set-TextBlock -TextBlock $OSInstallDateTextBlock -Text $ComputerInfo.InstallDate
-                    Set-TextBlock -TextBlock $NetConnectionTextBlock -Text $ComputerInfo.NetConnectType
-                    Set-TextBlock -TextBlock $PingTextBlock -Text $ComputerInfo.Latency
-                    Set-TextBlock -TextBlock $LastBootTextBlock -Text $ComputerInfo.LastBootTime
-                    Set-TextBlock -TextBlock $FreeSpaceTextBlock -Text $ComputerInfo.FreeDiskSpace
-                    Set-TextBlock -TextBlock $BIOSSecureBootTextBlock -Text $ComputerInfo.SecureBoot
-                    Set-TextBlock -TextBlock $BitlockerStatusTextBlock -Text $ComputerInfo.BitlockerStatus
-                    Set-TextBlock -TextBlock $BitlockerConversionTextBlock -Text $ComputerInfo.BitlockerConversion
-                    Set-TextBlock -TextBlock $SCCMStatusTextBlock -Text $ComputerInfo.SCCMStatus
-                    Set-TextBlock -TextBlock $SCCMVersionTextBlock -Text $ComputerInfo.SCCMVersion
-                    Set-TextBlock -TextBlock $SCCMLastDateTextBlock -Text $ComputerInfo.SCCMLastDate
-                    Set-TextBlock -TextBlock $SCCMLastUpdateTextBlock -Text $ComputerInfo.SCCMUpdate
-                    Set-TextBlock -TextBlock $RebootPendingTextBlock -Text $ComputerInfo.RebootPending
-                    Set-TextBlock -TextBlock $CcmExecTextBlock -Text $ComputerInfo.CcmExec
-                    Set-TextBlock -TextBlock $BitsTextBlock -Text $ComputerInfo.Bits
-                    Set-TextBlock -TextBlock $WinmgmtTextBlock -Text $ComputerInfo.Winmgmt
-                    Set-TextBlock -TextBlock $WuauservTextBlock -Text $ComputerInfo.Wuauserv
-
-                    $DNSSuffixes = $ComputerInfo.DNSSuffix
-                    foreach ($DNSSuffix in $DNSSuffixes) {
-                        [void]$DNSListBox.Items.Add($DNSSuffix)
-                    }
-                }
-                [GC]::Collect()
+            }
+            [GC]::Collect()
         }
     })
 #Copies hostname in textbox to clipboard.
