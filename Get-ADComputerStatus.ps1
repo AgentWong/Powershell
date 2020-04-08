@@ -158,6 +158,8 @@ Function Get-ComputerStatus {
         [void]$RunspacePool.Open()
         $Results = @()
         $Jobs = @()
+
+        #Timeout for the script, in minutes.
         [int]$Timeout = 8
     }#Begin close.
 
@@ -328,7 +330,7 @@ Function Get-ComputerStatus {
 
                         #Whether the remote computer's recovery password matches anything stored in Active Directory.
                         'BitlockerMatch'  = $BitlockerMatch
-                        
+
                     }#PScustomobject close.
                 }#Addscript close.
             )#Addscript close.
