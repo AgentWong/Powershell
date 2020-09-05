@@ -46,16 +46,12 @@ function Hide-Console {
 #Comment out and call Show-Console if you need to see it.
 Hide-Console
 
-#Gets the current user account running the script.
-$CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-
-
-    # Self-elevate the script if required
-    if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-        $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-        Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
-        Exit
-    } #Self-elevate check.
+# Self-elevate the script if required
+if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+    Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
+    Exit
+} #Self-elevate check.
 
 Function Confirm-IsEmpty ([string[]]$Fields) {
     #Checks whether the input is blank.
