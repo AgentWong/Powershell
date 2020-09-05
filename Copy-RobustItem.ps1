@@ -49,15 +49,13 @@ Hide-Console
 #Gets the current user account running the script.
 $CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
-#Checks if the account running has certain text in its name, if not, it will relaunch the script as an administrator.
-if ($CurrentUser -notlike "*z0*") {
+
     # Self-elevate the script if required
     if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
         $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
         Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine -WindowStyle Hidden
         Exit
-    }
-} #Self-elevate check.
+    } #Self-elevate check.
 
 Function Confirm-IsEmpty ([string[]]$Fields) {
     #Checks whether the input is blank.
@@ -100,7 +98,7 @@ Function Copy-RobustItem {
     PROCESS {
         #The backtick is used before each double quote so it is translated in the command.
         #This properly quotes the filepath and eliminates problems with filepaths that have spaces.
-        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName -s robocopy `"$ServerPath`" `"$LocalPath`""
+        Start-Process -FilePath "$env:windir\System32\psexec.exe" -ArgumentList "\\$ComputerName -h robocopy `"$ServerPath`" `"$LocalPath`"  /MIR /R:1 /W:1 /MT:20 /V /ETA >> C:\Scripts\Logs\Copy-RobustItemLog.txt 2>&1"
     }
 
     END { }
@@ -159,7 +157,7 @@ Function New-Form {
     $ServerPathLabel.Location = New-Object System.Drawing.Point(75, 70)
     $ServerPathLabel.Size = New-Object System.Drawing.Size(225, 40)
     $ServerPathLabel.BackColor = "Transparent"
-    $ServerPathLabel.Text = 'Local Netapp Path (ex: \\local-netapp1\Common_PC_Software\Autodesk\2018\Acad)'
+    $ServerPathLabel.Text = 'Source Directory UNC Path'
     $Panel.Controls.Add($ServerPathLabel)
 
     $ServerPathBox = New-Object System.Windows.Forms.TextBox
@@ -174,7 +172,7 @@ Function New-Form {
     $LocalPathLabel.Location = New-Object System.Drawing.Point(75, 140)
     $LocalPathLabel.Size = New-Object System.Drawing.Size(225, 30)
     $LocalPathLabel.BackColor = "Transparent"
-    $LocalPathLabel.Text = 'Local Directory (ex: C:\DRV\Autodesk\2018\Acad)'
+    $LocalPathLabel.Text = 'Local Directory Path'
     $Panel.Controls.Add($LocalPathLabel)
 
     $LocalPathBox = New-Object System.Windows.Forms.TextBox
